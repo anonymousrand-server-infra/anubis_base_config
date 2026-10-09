@@ -3,6 +3,9 @@
 # SYNC: naming convention!
 *_privkey
 
+# other variable things
+Dockerfile.dockerignore
+
 # vim
 *.swp
 *.swo
