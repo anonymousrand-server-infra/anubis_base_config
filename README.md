@@ -1,6 +1,6 @@
 # anubis base config
 
-checking to make sure you're not a bot :3
+making sure you're not a bot! :3
 
 ## notes
 
