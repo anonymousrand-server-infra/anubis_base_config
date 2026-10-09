@@ -1,0 +1,4 @@
+# from anubis docs and probably important
+proxy_set_header X-Real-IP $remote_addr;
+proxy_set_header X-Http-Version $server_protocol;
+proxy_set_header X-TLS-SNI-Name $ssl_server_name;

@@ -1,0 +1,41 @@
+# `(data)` means `https://github.com/TecharoHQ/anubis/blob/main/data`
+
+# block pathological bots
+- import: (data)/bots/_deny-pathological.yaml
+- import: (data)/bots/aggressive-brazilian-scrapers.yaml
+  # for some reason this currently fails with file not found
+  #- import: (data)/common/domain-fronting.yaml
+
+# aggressively block ai/llm bots
+- import: (data)/meta/ai-block-aggressive.yaml
+
+# search engine crawlers to allow; includes:
+#   - google (so they don't try to bypass anubis)
+#   - apple
+#   - bing
+#   - duckduckgo
+#   - qwant
+#   - the internet archive
+#   - kagi
+#   - marginalia
+#   - mojeek
+#   - arquivo.pt
+- import: (data)/crawlers/_allow-good.yaml
+# challenge firefox ai previews
+- import: (data)/clients/x-firefox-ai.yaml
+
+# x.ai has a scraper that is killing gitlab instances
+- import: (data)/crawlers/xai.yaml
+
+# allow common "keeping the internet working" routes (well-known, favicon, robots.txt)
+- import: (data)/common/keep-internet-working.yaml
+
+# for healthchecks etc. (so always use `curl -I` for those!)
+- name: "allow-head"
+  expression: 'method == "HEAD"'
+  action: ALLOW
+
+# always allow cors preflight
+- name: allow-prelights
+  expression: method == "OPTIONS"
+  action: ALLOW

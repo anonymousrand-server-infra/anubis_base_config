@@ -1,0 +1,48 @@
+include:
+  - ${PATH_TO_ROOT_DOCKER_PROJ:?}/shared_sckts.yaml
+  - ${PATH_TO_ROOT_DOCKER_PROJ:?}/${PATH_FROM_ROOT_TO_NGINX:?}/compose.yaml
+
+services:
+  anubis_base:
+    container_name: anubis_base
+    extends:
+      file: ${PATH_TO_ROOT_DOCKER_PROJ:?}/shared_sckts.yaml
+      service: shared_sckts_user
+    profiles:
+      # never start this container when included via `include:` and `docker compose up` is run
+      - do_not_start
+    build:
+      # note that dockerfile cannot access directories above this
+      context: ${PATH_TO_ROOT_DOCKER_PROJ:?}
+      dockerfile: ${PATH_FROM_ROOT_TO_ANUBIS:?}/Dockerfile
+      args:
+        DOCKER_ROOT_USER: ${DOCKER_ROOT_USER:?}
+        CONFIG_SRC_FILES: ${ANUBIS_CONFIG_SRC_FILES:?}
+        CONFIG_DEST_DIR: ${ANUBIS_CONFIG_DEST_DIR:?}
+        ANUBIS_PRIVKEY_DEST_FILE: ${ANUBIS_PRIVKEY_DEST_FILE:?}
+    restart: unless-stopped
+    # IMPORTANT: this needs to run as the same user as nginx to share the outbound socket!
+    # (should be fine as anubis shouldn't need to share sockets with a non-root, non-nginx service)
+    user: ${DOCKER_ROOT_USER:?}
+    environment:
+      DIFFICULTY: 4
+      SERVE_ROBOTS_TXT: true
+      # IMPORTANT: if anubis runs as root inside the container, this private key file
+      # needs to be owned by root if you want it to have 600 perms (currently set in dockerfile)
+      ED25519_PRIVATE_KEY_HEX_FILE: ${ANUBIS_PRIVKEY_DEST_FILE:?}
+      POLICY_FNAME: ${ANUBIS_POLICY_DEST_FILE:?}
+      # metrics currently commented out since healthcheck doesn't work when this is on a unix socket
+      ## these are deprecated but are the only way to pull the env vars
+      #METRICS_BIND_NETWORK: unix
+      #METRICS_BIND: ${ANUBIS_METRICS_SCKT:?}
+    healthcheck:
+      test: ["CMD", "anubis", "--healthcheck"]
+      interval: 15s
+      timeout: 30s
+      retries: 3
+      start_period: 1s
+    depends_on:
+      # IMPORTANT: the target unix socket must exist BEFORE anubis is run (i.e. created by
+      # the upstream/nginx first); anubis won't create it! hence `depends_on` nginx
+      nginx:
+        condition: service_healthy
