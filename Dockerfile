@@ -16,7 +16,6 @@ COPY --from=busybox /bin/* /bin/
 # `COPY` doesn't work if `CONFIG_SRC_FILES` holds multiple space-separated files, so we instead
 # make a temporary bind of the dockerfile's context to `/tmp_bind/` inside the container and `cp`
 # this does require us to mount a large context, but this service shouldn't be restarted much
-
 ARG CONFIG_SRC_FILES
 ARG CONFIG_DEST_DIR
 
@@ -29,7 +28,6 @@ RUN --mount=type=bind,target=/tmp_bind/ \
 # set the right permissions for the private key inside the container: only accessible to root
 # (we do this here instead of in a `pre_start` hook since we aren't bind mounting this file,
 # and since `pre_start`s run their own container they cannot access the files copied to this one)
-
 ARG ANUBIS_PRIVKEY_DEST_FILE
 
 RUN chown ${DOCKER_ROOT_USER} ${ANUBIS_PRIVKEY_DEST_FILE}
